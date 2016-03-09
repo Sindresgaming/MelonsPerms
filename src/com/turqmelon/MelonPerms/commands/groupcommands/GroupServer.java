@@ -22,7 +22,7 @@ import java.util.List;
 public class GroupServer extends SubCommand {
 
     public GroupServer(MasterCommand command) {
-        super("server", command, "Sets group access per-server", "Group>", "perms.group.server");
+        super("server", command, "Sets group access per-server", "<Group>", "perms.group.server");
     }
 
     // Allows restricting groups to specific servers
