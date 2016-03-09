@@ -32,7 +32,7 @@ public class GroupWorld extends SubCommand {
     @Override
     protected void execute(CommandSender sender, List<String> args) throws InsufficientArgumentException, UserNotFoundException, InsufficientArgumentTypeException, GroupNotFoundException {
 
-        if (args.size() == 3) {
+        if (args.size() == 2) {
 
             Group group = GroupManager.getGroup(args.get(0));
             World world = Bukkit.getWorld(args.get(1));
