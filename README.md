@@ -40,5 +40,48 @@ Unsets a defintion for a permission.
 Shows information about the provided group
 
 * **/p group world [Group] [World]**
-Toggles the provided world beign a supported world for the group. If no worlds are defined, then all worlds will support the provided world.
+Toggles the provided world being a supported world for the group. If no worlds are defined, then all worlds will support the provided world.
 
+#### User Management
+[ ] = Required, { } = Optional
+* **/p user addgroup [User] [Group]**
+Adds a user to a group
+
+* **/p user bukkitcheck [Player] [Permission]**
+Performs a bukkit hasPermission() check on a player, for testing purposes
+
+* **/p user demote [User] {Track}**
+Demotes a user on the default (or provided) track
+
+* **/p user prefix [User] [Prefix|Remove]**
+Defines a prefix for a user and automatically adds a space at the end. Say "remove" to remove a defined prefix. User prefixes will override group prefixes.
+
+* **/p user promote [User] {Track}**
+Promotes a user on the default (or provided) track
+
+* **/p user removegroup [User] [Group]**
+Removes a user from the provided group
+
+* **/p user server [User] [Permission]**
+Toggles the current server being a supported server for the permission. If no servers are defined, then all servers will support the permission.
+ 
+* **/p user set [User] [Permission] {Negated}**
+Defines a permission for a user. If {Negated} is true, then the permission will be negated. User permissions will override group permissions.
+
+* **/p user setgroup [User] [Group]**
+Removes any existing group memberships (except the default group) and adds the user to the provided group
+
+* **/p user suffix [User] [Suffix|Remove]**
+Defines a suffix for a user. Say "remove" to remove the defined suffix. User suffixes will override group suffixes.
+
+* **/p user super [User]**
+Toggles a user being a super user. Super users have full plugin access regardless of OP or permission status. **This command can only be run from console.**
+
+* **/p user unset [User] [Permission]**
+Undefined a permission from a user.
+
+* **/p user view [User]**
+Shows information about the provided user.
+
+* **/p user world [User] [Permission] [World]**
+Toggles the provided world being a supported world for the permission. If no worlds are defined, then all worlds will support the permission.
