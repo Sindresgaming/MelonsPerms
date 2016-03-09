@@ -1,0 +1,9 @@
+name: MelonPerms
+author: Turqmelon
+version: 1.0
+main: com.turqmelon.MelonPerms.MelonPerms
+description: Permission Management for Networks
+commands:
+  melonperms:
+    description: Manage permissions
+    aliases: [perms, permissions, mp, p, perm]

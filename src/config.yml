@@ -1,0 +1,17 @@
+# MelonPerms Configuration
+# Leave Server UUID alone - It will be populated by the plugin upon first startup
+server-uuid: undefined
+storage:
+  mode: yaml
+  yaml:
+    file: data.yml
+  sql:
+    host: localhost
+    port: 3306
+    database: minecraft
+    username: root
+    password: ''
+    table-prefix: 'mp_'
+    sync-minutes: 3
+redis:
+  enable: false
