@@ -134,7 +134,7 @@ public class JSONValue {
      * @see org.json.simple.JSONArray#writeJSONString(List, Writer)
      *
      * @param value
-     * @param writer
+     * @param out
      */
     public static void writeJSONString(Object value, Writer out) throws IOException {
         if (value == null) {
