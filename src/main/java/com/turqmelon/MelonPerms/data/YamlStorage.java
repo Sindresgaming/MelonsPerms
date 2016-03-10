@@ -28,7 +28,7 @@ import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 // Allows saving permissions and users to a yml file in the plugin's directory
-public class YamlStorage extends DataStore {
+public final class YamlStorage extends DataStore {
 
     private YamlConfiguration config;
     private File file;

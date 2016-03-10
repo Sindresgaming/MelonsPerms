@@ -29,7 +29,7 @@ import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 // Allows saving permissions and users to a MySQL database
-public class SQLStorage extends DataStore {
+public final class SQLStorage extends DataStore {
 
     private Connection connection;
 
