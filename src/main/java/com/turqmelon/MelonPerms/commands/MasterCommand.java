@@ -14,8 +14,11 @@ public class MasterCommand {
     private String name;
     private List<SubCommand> commands = new ArrayList<>();
 
-    public MasterCommand(String name) {
+    public MasterCommand(String name, SubCommand... subCommands) {
         this.name = name;
+        for(SubCommand subCommand : subCommands) {
+            this.commands.add(subCommand);
+        }
     }
 
     public String getName() {
