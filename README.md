@@ -1,6 +1,33 @@
 # MelonsPerms
 A permissions plugin with Multi-Server and Multi-World support. I got tired of making a permission manager for each project I worked on.
 
+## Configuration
+```yml
+# MelonPerms Configuration
+# Leave Server UUID alone - It will be populated by the plugin upon first startup
+server-uuid: undefined
+storage:
+  
+  # How you'd like MelonPerms to store data
+  mode: yaml
+  yaml:
+    # The data file to use
+    file: data.yml
+  sql:
+    # The MySQL server information
+    host: localhost
+    port: 3306
+    database: minecraft
+    username: root
+    password: ''
+    table-prefix: 'mp_'
+    # How often to pull group and tracks (in case of changes)
+    sync-minutes: 3
+# Not currently used
+redis:
+  enable: false
+```
+
 ## Commands
 The commands for MelonPerms are pretty straight forward.
 
