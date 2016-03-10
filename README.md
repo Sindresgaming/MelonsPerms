@@ -85,3 +85,26 @@ Shows information about the provided user.
 
 * **/p user world [User] [Permission] [World]**
 Toggles the provided world being a supported world for the permission. If no worlds are defined, then all worlds will support the permission.
+
+#### Track Management
+[ ] = Required, { } = Optional
+* **/p track addgroup [Track] [Group]**
+Adds a group to the provided track
+
+* **/p track create [Name]**
+Creates a new track
+
+* **/p track default [Track]**
+Changes the default track
+
+* **/p track list**
+Lists all tracks
+
+* **/p track movegroup [Track] [Group] [Up/Down]**
+Moves a group within a track
+
+* **/p track removegroup [Track] [Group]**
+Removes a group from the provided track
+
+* **/p track view [Track]**
+Shows information for a track
