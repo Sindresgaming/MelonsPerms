@@ -278,9 +278,13 @@ public class SQLStorage extends DataStore {
 
                     group.setPriority((int) data.get("priority"));
 
+                    group.getPrivileges().clear();
+
                     for (Object p : (JSONArray) data.get("privileges")) {
                         group.getPrivileges().add(new Privilege(((String) p).split(":")));
                     }
+
+                    group.getInheritance().clear();
 
                     for (Object i : (JSONArray) data.get("inherit")) {
                         Group ih = GroupManager.getGroup((String) i);
@@ -288,6 +292,9 @@ public class SQLStorage extends DataStore {
                             group.getInheritance().add(ih);
                         }
                     }
+
+                    group.getServers().clear();
+                    group.getWorlds().clear();
 
                     for (Object w : (JSONArray) data.get("worlds")) {
                         World world = Bukkit.getWorld((String) w);
