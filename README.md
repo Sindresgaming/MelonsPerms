@@ -1,4 +1,4 @@
-# MelonsPerms
+# MelonsPerms [![Build Status](https://travis-ci.org/Turqmelon/MelonsPerms.svg?branch=master)](https://travis-ci.org/Turqmelon/MelonsPerms)
 A permissions plugin with Multi-Server and Multi-World support. I got tired of making a permission manager for each project I worked on.
 
 ## Configuration
