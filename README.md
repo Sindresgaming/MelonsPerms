@@ -28,6 +28,47 @@ redis:
   enable: false
 ```
 
+## API Examples
+It's really easy to use MelonPerms in your own projects.
+
+To get information about a user, use the **User** object. You can get the user object from an online player, a UUID, or the player's name.
+
+```java
+User user = UserManager.getUser(player);
+```
+
+A **User** is null if they're not in the DataStore.
+
+Say we wanted to make a chat plugin, it'd be as simple as...
+
+```java
+
+@EventHandler
+public void onChat(AsyncPlayerChatEvent event) {
+
+  Player player = event.getPlayer();
+  User user = UserManager.getUser(player);
+  
+  if (user != null) {
+    event.setFormat(user.getPrefix() + "%s: " + user.getSuffix() + "%s");
+  }
+
+}
+
+```
+
+If you make changes to a user's permissions, run:
+
+```java
+user.refreshPermissions(player.getWorld());
+```
+
+And remember to save!
+
+```java
+MelonPerms.getDataStore().saveUser(user);
+```
+
 ## Commands
 The commands for MelonPerms are pretty straight forward.
 
