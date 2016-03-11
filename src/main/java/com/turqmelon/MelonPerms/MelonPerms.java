@@ -22,12 +22,16 @@ import com.turqmelon.MelonPerms.users.UserManager;
 import com.turqmelon.MelonPerms.util.MelonServer;
 import org.bukkit.Bukkit;
 import org.bukkit.command.PluginCommand;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
+import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
 
@@ -60,6 +64,17 @@ public class MelonPerms extends JavaPlugin {
         File file = new File(getDataFolder(), "config.yml");
         if (!file.exists()) {
             saveDefaultConfig();
+        }
+
+        try {
+            YamlConfiguration pluginConfig = new YamlConfiguration();
+            //noinspection deprecation
+            pluginConfig.load(this.getResource("config.yml"));
+            syncConfig(pluginConfig, getConfig());
+            saveConfig();
+        } catch (Exception e) {
+            this.getLogger().log(Level.WARNING, "Could not update config to latest version");
+            e.printStackTrace();
         }
 
         // Register available DataStore methods
@@ -200,6 +215,11 @@ public class MelonPerms extends JavaPlugin {
             }
         });
 
+    }
+
+    private void syncConfig(ConfigurationSection from, ConfigurationSection to) {
+        Set<String> toKeys = to.getKeys(true);
+        from.getKeys(true).stream().filter(key -> !toKeys.contains(key)).forEach(key -> to.set(key, from.get(key)));
     }
 
     public static void doAsync(Runnable runnable) {
