@@ -7,7 +7,6 @@ A permissions plugin with Multi-Server and Multi-World support. I got tired of m
 # Leave Server UUID alone - It will be populated by the plugin upon first startup
 server-uuid: undefined
 storage:
-  
   # How you'd like MelonPerms to store data
   mode: yaml
   yaml:
@@ -23,8 +22,16 @@ storage:
     table-prefix: 'mp_'
     # How often to pull group and tracks (in case of changes)
     sync-minutes: 3
-# Not currently used
+  sqlite:
+    # SQLite is often faster then yaml in cases where you have a lot of players
+    # on a single server but ned to keep the database separate from mysql.
+
+    # The data file to use
+    file: database.sqlite
+    # How often to pull group and tracks (in case of changes)
+    sync-minutes: 3
 redis:
+  # Not currently used
   enable: false
 ```
 
