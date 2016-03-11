@@ -11,7 +11,8 @@ import com.turqmelon.MelonPerms.commands.groupcommands.*;
 import com.turqmelon.MelonPerms.commands.trackcommands.*;
 import com.turqmelon.MelonPerms.commands.usercommands.*;
 import com.turqmelon.MelonPerms.data.DataStore;
-import com.turqmelon.MelonPerms.data.SQLStorage;
+import com.turqmelon.MelonPerms.data.MySQLStorage;
+import com.turqmelon.MelonPerms.data.SQLiteDataStore;
 import com.turqmelon.MelonPerms.data.YamlStorage;
 import com.turqmelon.MelonPerms.groups.GroupManager;
 import com.turqmelon.MelonPerms.listeners.JoinListener;
@@ -62,19 +63,16 @@ public class MelonPerms extends JavaPlugin {
         }
 
         // Register available DataStore methods
-        DataStore.getMethods().add(new YamlStorage(
-                "YAML",
-                new File(getDataFolder(),
-                        getConfig().getString("storage.yaml.file"))));
-        DataStore.getMethods().add(new SQLStorage(
-                "SQL",
-                getConfig().getString("storage.sql.host"),
-                getConfig().getInt("storage.sql.port"),
-                getConfig().getString("storage.sql.database"),
-                getConfig().getString("storage.sql.username"),
-                getConfig().getString("storage.sql.password"),
-                getConfig().getString("storage.sql.table-prefix")
+        DataStore.getMethods().add(new YamlStorage(new File(getDataFolder(), getConfig().getString("storage.yaml.file"))));
+        DataStore.getMethods().add(new MySQLStorage(
+                getConfig().getString("storage.mysql.host"),
+                getConfig().getInt("storage.mysql.port"),
+                getConfig().getString("storage.mysql.database"),
+                getConfig().getString("storage.mysql.username"),
+                getConfig().getString("storage.mysql.password"),
+                getConfig().getString("storage.mysql.table-prefix")
         ));
+        DataStore.getMethods().add(new SQLiteDataStore(new File(getDataFolder(), getConfig().getString("storage.sqlite.file"))));
 
         // Generate a new server ID, or load the existing one.
         // Allows each server to be uniquely identified.
@@ -105,18 +103,26 @@ public class MelonPerms extends JavaPlugin {
             return;
         }
 
-        // Initializes the data store (open DB connections, create files, etc.)
-        getLogger().log(Level.INFO, "Iniitalizing data store \"" + getDataStore().getName() + "\"...");
-        getDataStore().initialize();
+        try {
+            // Initializes the data store (open DB connections, create files, etc.)
+            getLogger().log(Level.INFO, "Iniitalizing data store \"" + getDataStore().getName() + "\"...");
+            getDataStore().initialize();
 
-        // Loads all groups and tracks
-        getLogger().log(Level.INFO, "Loading groups...");
-        getDataStore().loadGroups();
-        getLogger().log(Level.INFO, "Loaded " + GroupManager.getGroups().size() + " group(s)!");
+            // Loads all groups and tracks
+            getLogger().log(Level.INFO, "Loading groups...");
+            getDataStore().loadGroups();
+            getLogger().log(Level.INFO, "Loaded " + GroupManager.getGroups().size() + " group(s)!");
 
-        getLogger().log(Level.INFO, "Loading tracks...");
-        getDataStore().loadTracks();
-        getLogger().log(Level.INFO, "Loaded " + GroupManager.getTracks().size() + " track(s)!");
+            getLogger().log(Level.INFO, "Loading tracks...");
+            getDataStore().loadTracks();
+            getLogger().log(Level.INFO, "Loaded " + GroupManager.getTracks().size() + " track(s)!");
+        } catch (Throwable e) {
+            getLogger().log(Level.SEVERE, "Cannot load initial data from datastore.");
+            getLogger().log(Level.SEVERE, "Check your configuration, then try again.");
+            e.printStackTrace();
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
 
         // Registers plugin events
         getServer().getPluginManager().registerEvents(new JoinListener(), this);

@@ -33,8 +33,8 @@ public final class YamlStorage extends DataStore {
     private YamlConfiguration config;
     private File file;
 
-    public YamlStorage(String name, File file) {
-        super(name);
+    public YamlStorage(File file) {
+        super("yaml");
         this.file = file;
     }
 
@@ -56,7 +56,7 @@ public final class YamlStorage extends DataStore {
                     MelonPerms.getInstance().getLogger().log(Level.INFO, "Created storage file: " + getFile().getName());
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                throw new RuntimeException(e);
             }
         }
 
@@ -64,6 +64,7 @@ public final class YamlStorage extends DataStore {
             getConfig().load(getFile());
         } catch (IOException | InvalidConfigurationException e) {
             e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
@@ -72,7 +73,7 @@ public final class YamlStorage extends DataStore {
         try {
             getConfig().save(getFile());
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 

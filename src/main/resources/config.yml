@@ -13,5 +13,8 @@ storage:
     password: ''
     table-prefix: 'mp_'
     sync-minutes: 3
+  sqlite:
+    file: database.sqlite
+    sync-minutes: 3
 redis:
   enable: false

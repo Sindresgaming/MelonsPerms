@@ -1,11 +1,5 @@
 package com.turqmelon.MelonPerms.data;
 
-/*******************************************************************************
- * Copyright (c) 2016.  Written by Devon "Turqmelon": http://turqmelon.com
- * For more information, see LICENSE.TXT.
- ******************************************************************************/
-
-
 import com.turqmelon.MelonPerms.MelonPerms;
 import com.turqmelon.MelonPerms.groups.Group;
 import com.turqmelon.MelonPerms.groups.GroupManager;
@@ -15,109 +9,100 @@ import com.turqmelon.MelonPerms.util.Privilege;
 import com.turqmelon.MelonPerms.util.Track;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
-// Allows saving permissions and users to a MySQL database
-public final class SQLStorage extends DataStore {
+/**
+ * @author Jackson
+ * @version 1.0
+ */
+public abstract class SQLDataStore extends DataStore {
 
     private Connection connection;
 
-    private String host;
-    private int port;
-    private String database;
-    private String username;
-    private String password;
-    private String tablePrefix;
-
-    public SQLStorage(String name, String host, int port, String database, String username, String password, String tablePrefix) {
+    public SQLDataStore(String name) {
         super(name);
-        this.host = host;
-        this.port = port;
-        this.database = database;
-        this.username = username;
-        this.password = password;
-        this.tablePrefix = tablePrefix;
+    }
+
+    protected abstract Connection openConnection() throws SQLException;
+
+    protected abstract void setupTables() throws SQLException;
+
+    protected String getTablePrefix() {
+        return "";
+    }
+
+    public final Connection getConnection() {
+        return this.connection;
+    }
+
+    public boolean isConnected() {
+        if(connection==null) {
+            return false;
+        }
+        try {
+            return !connection.isClosed();
+        } catch (SQLException e) {
+            return false;
+        }
+    }
+
+    private void checkConnection() {
+        if(!isConnected()) {
+            throw new IllegalStateException("Database is not connected!");
+        }
     }
 
     @Override
     public void initialize() {
-
-        MelonPerms.getInstance().getLogger().log(Level.INFO, "Establishing database connection...");
+        MelonPerms.getInstance().getLogger().log(Level.INFO, "Establishing " + this.getName() + " database connection...");
         try {
-            this.connection = DriverManager.getConnection("jdbc:mysql://" + getHost() + ":" + getPort() + "/" + getDatabase(), getUsername(), getPassword());
+            this.connection = this.openConnection();
 
             MelonPerms.getInstance().getLogger().log(Level.INFO, "Connection successful! Checking tables...");
-
-            PreparedStatement stmt = getConnection().prepareStatement("" +
-                    "CREATE TABLE IF NOT EXISTS `" + getTablePrefix() + "users` ( `id` BIGINT NOT NULL AUTO_INCREMENT , `uuid` VARCHAR(255) NOT NULL , `name` VARCHAR(255) NOT NULL , `data` TEXT NOT NULL , PRIMARY KEY (`id`)) ENGINE = InnoDB;");
-
-            stmt.execute();
-            stmt.close();
-
-            stmt = getConnection().prepareStatement("" +
-                    "CREATE TABLE IF NOT EXISTS `" + getTablePrefix() + "tracks` ( `id` BIGINT NOT NULL AUTO_INCREMENT , `name` VARCHAR(255) NOT NULL , `data` TEXT NOT NULL , PRIMARY KEY (`id`)) ENGINE = InnoDB;");
-            stmt.execute();
-            stmt.close();
-
-            stmt = getConnection().prepareStatement("" +
-                    "CREATE TABLE IF NOT EXISTS `" + getTablePrefix() + "groups` ( `id` BIGINT NOT NULL AUTO_INCREMENT , `name` VARCHAR(255) NOT NULL , `data` TEXT NOT NULL , PRIMARY KEY (`id`)) ENGINE = InnoDB;");
-            stmt.execute();
-            stmt.close();
+            this.setupTables();
 
             MelonPerms.getInstance().getLogger().log(Level.INFO, "SQL startup complete.");
 
-
         } catch (SQLException e) {
-            MelonPerms.getInstance().getLogger().log(Level.SEVERE, "Failed to open SQL connection: " + e.getMessage());
+            this.close();
+            throw new RuntimeException(e);
         }
-
-        int mins = MelonPerms.getInstance().getConfig().getInt("storage.sql.sync-minutes");
-        if (mins > 0) {
-            long secs = mins * 60;
-            secs = secs * 20;
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    MelonPerms.getInstance().getLogger().log(Level.INFO, "Resyncing data...");
-                    loadGroups();
-                    loadTracks();
-                }
-            }.runTaskTimerAsynchronously(MelonPerms.getInstance(), secs, secs);
-        }
-
     }
 
     @Override
     public void close() {
         try {
-            if (!getConnection().isClosed()) {
+            if (getConnection() != null && !getConnection().isClosed()) {
                 getConnection().close();
             }
         } catch (SQLException e) {
-            MelonPerms.getInstance().getLogger().log(Level.SEVERE, "Failed to properly close SQL connection: " + e.getMessage());
+            throw new RuntimeException("Failed to properly close SQL connection", e);
+        } finally {
+            this.connection = null;
         }
     }
 
     @Override
     public User loadUser(UUID uuid) {
-
-        try {
-            PreparedStatement stmt = getConnection().prepareStatement("" +
-                    "SELECT * FROM " + getTablePrefix() + "users WHERE uuid = ? LIMIT 1;");
+        checkConnection();
+        try (PreparedStatement stmt = getConnection().prepareStatement("SELECT * FROM " + getTablePrefix() + "users WHERE uuid = ? LIMIT 1;")) {
             stmt.setString(1, uuid.toString());
-            ResultSet set = stmt.executeQuery();
-            return getSQLUser(set);
+            try(ResultSet set = stmt.executeQuery()) {
+                return getSQLUser(set);
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -127,13 +112,12 @@ public final class SQLStorage extends DataStore {
 
     @Override
     public User loadUser(String name) {
-
-        try {
-            PreparedStatement stmt = getConnection().prepareStatement("" +
-                    "SELECT * FROM " + getTablePrefix() + "users WHERE name = ? LIMIT 1;");
+        checkConnection();
+        try (PreparedStatement stmt = getConnection().prepareStatement("SELECT * FROM " + getTablePrefix() + "users WHERE name = ? LIMIT 1;")) {
             stmt.setString(1, name);
-            ResultSet set = stmt.executeQuery();
-            return getSQLUser(set);
+            try(ResultSet set = stmt.executeQuery()) {
+                return getSQLUser(set);
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -141,7 +125,7 @@ public final class SQLStorage extends DataStore {
         return null;
     }
 
-    private User getSQLUser(ResultSet set) {
+    private User getSQLUser(ResultSet set) throws SQLException {
         try {
             if (set.next()) {
 
@@ -180,7 +164,7 @@ public final class SQLStorage extends DataStore {
                 return user;
 
             }
-        } catch (SQLException | ParseException e) {
+        } catch (ParseException e) {
             e.printStackTrace();
         }
         return null;
@@ -188,6 +172,7 @@ public final class SQLStorage extends DataStore {
 
     @Override
     public void saveUser(User user) {
+        checkConnection();
 
         JSONObject obj = new JSONObject();
         obj.put("prefix", user.getMetaPrefix());
@@ -241,10 +226,11 @@ public final class SQLStorage extends DataStore {
 
     @Override
     public void loadGroups() {
+        checkConnection();
 
         try {
             List<String> downloadedNames = new ArrayList<>();
-            PreparedStatement stmt = getConnection().prepareStatement("SELECT * FROM " + getTablePrefix() + "groups;");
+            PreparedStatement stmt = getConnection().prepareStatement("SELECT name FROM " + getTablePrefix() + "groups;");
             ResultSet set = stmt.executeQuery();
             while (set.next()) {
                 String name = set.getString("name");
@@ -276,7 +262,7 @@ public final class SQLStorage extends DataStore {
                     Object obj = parser.parse(json);
                     JSONObject data = (JSONObject) obj;
 
-                    group.setPriority((int) data.get("priority"));
+                    group.setPriority(Integer.valueOf(data.get("priority").toString()));
 
                     group.getPrivileges().clear();
 
@@ -323,6 +309,7 @@ public final class SQLStorage extends DataStore {
 
     @Override
     public void saveGroup(Group group) {
+        checkConnection();
 
         JSONObject obj = new JSONObject();
         obj.put("priority", group.getPriority());
@@ -371,6 +358,7 @@ public final class SQLStorage extends DataStore {
 
     @Override
     public void loadTracks() {
+        checkConnection();
 
         GroupManager.getTracks().clear();
 
@@ -413,6 +401,7 @@ public final class SQLStorage extends DataStore {
 
     @Override
     public void saveTrack(Track track) {
+        checkConnection();
 
         JSONObject obj = new JSONObject();
         obj.put("isdefault", track.isDefaultTrack());
@@ -459,6 +448,7 @@ public final class SQLStorage extends DataStore {
 
     @Override
     public void deleteGroup(Group group) {
+        checkConnection();
         try {
             PreparedStatement stmt = getConnection().prepareStatement(
                     "DELETE FROM " + getTablePrefix() + "groups WHERE name = ?;"
@@ -473,6 +463,7 @@ public final class SQLStorage extends DataStore {
 
     @Override
     public void deleteTrack(Track track) {
+        checkConnection();
         try {
             PreparedStatement stmt = getConnection().prepareStatement(
                     "DELETE FROM " + getTablePrefix() + "tracks WHERE name = ?;"
@@ -483,33 +474,5 @@ public final class SQLStorage extends DataStore {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-    }
-
-    public String getHost() {
-        return host;
-    }
-
-    public int getPort() {
-        return port;
-    }
-
-    public String getDatabase() {
-        return database;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public String getTablePrefix() {
-        return tablePrefix;
-    }
-
-    public Connection getConnection() {
-        return connection;
     }
 }
